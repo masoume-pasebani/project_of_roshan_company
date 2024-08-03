@@ -1,0 +1,60 @@
+version: '3.8'
+
+services:
+  django:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+
+  celery:
+    build:
+      context: .
+      dockerfile: Dockerfile.celery
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - django
+      - redis
+
+  celerybeat:
+    build:
+      context: .
+      dockerfile: Dockerfile.celerybeat
+    volumes:
+      - .:/usr/src/app
+    depends_on:
+      - django
+      - redis
+
+  db:
+    image: postgres:13
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: mydatabase
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+
+  redis:
+    image: redis:6
+
+volumes:
+  postgres_data:
+
+  flower:
+    image: mher/flower
+    command: ["flower", "--port=5555", "--broker=redis://redis:6379/0"]
+    ports:
+      - "5555:5555"
+    depends_on:
+      - redis
+      - django
+

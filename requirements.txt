@@ -1,0 +1,7 @@
+Django>=3.2,<4.0
+djangorestframework
+celery
+redis
+psycopg2-binary
+selenium
+django-celery-beat
